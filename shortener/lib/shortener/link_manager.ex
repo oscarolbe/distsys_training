@@ -24,16 +24,31 @@ defmodule Shortener.LinkManager do
 
   def create(url) do
     short_code = generate_short_code(url)
+    node = Cluster.find_node(short_code)
+    #:ok = Cache.insert(Cache, short_code, url)
+    Storage.set(Storage, short_code, url)
+    :abcast = Cache.broadcast_insert(Cache, short_code, url)
 
     {:ok, short_code}
+    #catch
+    #:exit, _ ->
+    #  {:error, :nodedown}
   end
 
   def lookup(short_code) do
-    Storage.get(short_code)
+    {:ok, url} = Storage.get(short_code)
+    Cache.insert(Cache, short_code, url)
+    {:ok, url}
   end
 
   def remote_lookup(short_code) do
-    # TODO - Do a remote lookup
+    Cluster.find_node(short_code)
+
+    task = Task.Supervisor.async({@lookup_sup, node}, __MODULE__, :lookup, [short_code])
+    Task.await(task, 50)
+  catch
+    :exit, _ ->
+      {:error, :node_down}
   end
 
   def generate_short_code(url) do

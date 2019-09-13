@@ -21,18 +21,25 @@ defmodule PingPong.Producer do
   end
 
   def init(_args) do
-    # TODO - Listen for node up and down events
+    :net_kernel.monitor_nodes(true)
     {:ok, @initial}
   end
 
-  def handle_call(:send_ping, _from, data) do
-    # TODO - Send a ping to all consumer processes
+  def handle_call(:get_current, from, %{current: current} = state) do
+    {:reply, current, state}
+  end
+
+  def handle_call(:send_ping, from, data) do
+    GenServer.abcast(Consumer, {:ping, data.current+1, Node.self()})
     {:reply, :ok, %{data | current: data.current+1}}
   end
 
   def handle_call(:get_counts, _from, data) do
-    # TODO - Get the count from each consumer
-    map = %{}
+    map =
+      Consumer
+      |> GenServer.multi_call(:total_pings)
+      |> Kernel.elem(0)
+      |> Enum.into(%{})
     {:reply, map, data}
   end
 
@@ -41,8 +48,19 @@ defmodule PingPong.Producer do
     {:reply, :ok, @initial}
   end
 
-  def handle_info(_msg, data) do
+  # Node callbacks
+  def handle_info({:nodeup, node}, data) do
     # TODO - Fill me in l8r
+    #IO.inspect msg, label: "Producer handle_info ::: msg"
+    #IO.inspect data, label: "Producer handle_info ::: data"
+    GenServer.abcast(Consumer, {:ping, data.current, node})
+    {:noreply, data}
+  end
+  def handle_info({:nodedown, node}, data) do
+    # TODO - Fill me in l8r
+    #IO.inspect msg, label: "Producer handle_info ::: msg"
+    #IO.inspect data, label: "Producer handle_info ::: data"
+    GenServer.abcast(Consumer, {:ping, data.current, node})
     {:noreply, data}
   end
 end

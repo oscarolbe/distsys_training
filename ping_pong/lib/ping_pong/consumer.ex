@@ -22,7 +22,7 @@ defmodule PingPong.Consumer do
   end
 
   def init(_args) do
-    {:ok, @initial}
+    {:ok, @initial, {:continue, :catchup}}
   end
 
   def handle_cast({:ping, index, node}, data) do
@@ -40,6 +40,11 @@ defmodule PingPong.Consumer do
       |> Enum.sum()
 
     {:reply, ping_count, data}
+  end
+
+  def handle_continue(:catchup, state) do
+    {result, _} = GenServer.multi_call(Producer, :get_current)
+    {:noreply, %{counts: Map.new(result)}}
   end
 
   # We need these for testing. Ignore the warning and do not remove :)

@@ -34,6 +34,7 @@ defmodule Shortener.ClusterManagementTest do
     :ok
   end
 
+  @tag :only
   test "cluster membership can be set", %{nodes: nodes} do
     [n1, n2, n3] = nodes
     Cluster.set_canonical_nodes(nodes)
@@ -43,6 +44,7 @@ defmodule Shortener.ClusterManagementTest do
     assert n2 == Cluster.find_node("c")
   end
 
+  @tag :only
   test "links are routed to specific boxes", %{nodes: nodes} do
     [_n1, _n2, n3] = nodes
     url = "https://elixiroutlaws.com"

@@ -38,12 +38,14 @@ defmodule ShortenerTest do
   end
 
   describe "Cache" do
+    @tag :only
     test "can store urls" do
       assert Cache.lookup("shortcode") == {:error, :not_found}
       Cache.insert("shortcode", "https://elixiroutlaws.com")
       assert Cache.lookup("shortcode") == {:ok, "https://elixiroutlaws.com"}
     end
 
+    @tag :only
     test "after a cache miss the cache is updated" do
       url = "https://elixiroutlaws.com"
       assert {:ok, code} = LinkManager.create(url)
@@ -55,6 +57,7 @@ defmodule ShortenerTest do
   end
 
   describe "clustered" do
+    @tag :only
     test "it shortens links" do
       resp = post("http://localhost:4000", %{"url" => "https://keathley.io"})
       assert resp.status_code == 201
@@ -66,6 +69,7 @@ defmodule ShortenerTest do
       assert "https://keathley.io" = resp.body
     end
 
+    @tag :only
     test "all nodes can see a new short link", %{nodes: nodes} do
       url = "https://elixiroutlaws.com"
       [n1, n2] = nodes
@@ -79,6 +83,7 @@ defmodule ShortenerTest do
       end)
     end
 
+    @tag :only
     test "links can be returned even during a partition", %{nodes: nodes} do
       url = "https://elixiroutlaws.com"
       [n1, n2] = nodes

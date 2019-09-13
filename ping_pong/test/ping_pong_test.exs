@@ -24,6 +24,7 @@ defmodule PingPongTest do
     {:ok, nodes: nodes}
   end
 
+  @tag :only
   test "producer sends pings to each connected nodes consumer", %{nodes: nodes} do
     [n1, n2] = nodes
     assert :ok == Producer.send_ping()
@@ -35,6 +36,7 @@ defmodule PingPongTest do
     end
   end
 
+  @tag :only
   test "producer can check the state of each connected consumer", %{nodes: nodes} do
     [n1, n2] = nodes
 
@@ -51,6 +53,7 @@ defmodule PingPongTest do
     end)
   end
 
+  @tag :only
   test "producer can catch up crashed consumers", %{nodes: nodes} do
     [n1, _n2] = nodes
 
@@ -67,6 +70,7 @@ defmodule PingPongTest do
     spawn(fn ->
       GenServer.call({Consumer, n1}, :crash)
     end)
+    :timer.sleep(200)
 
     for n <- nodes do
       eventually(fn ->
